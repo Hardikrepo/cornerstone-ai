@@ -33,6 +33,10 @@ An animated walkthrough of the same target-state design:
 
 ![Animated walkthrough of the target-state AWS architecture](docs/images/architecture-demo.gif)
 
+And a sketch-note summary of the same design, subnet-by-subnet:
+
+![Sketch-note summary of the target-state AWS architecture](docs/images/architecture-notes.png)
+
 ## What does it cost?
 
 This is genuinely cheap — here's the honest breakdown:
