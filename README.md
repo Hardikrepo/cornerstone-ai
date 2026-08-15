@@ -39,6 +39,10 @@ Browser → API Gateway → Lambda → S3 (upload)
 
 ![Target-state AWS architecture — production-hardened design, not the current MVP](docs/images/architecture-target-state.png)
 
+An animated walkthrough of the same target-state design:
+
+![Animated walkthrough of the target-state AWS architecture](docs/images/architecture-demo.gif)
+
 ## What does it cost?
 
 This is genuinely cheap — here's the honest breakdown:
