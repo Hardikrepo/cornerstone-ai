@@ -1,0 +1,3 @@
+# boto3 ships in the Lambda Python 3.12 runtime by default — nothing to
+# install for this function. Listed here for local dev/testing only.
+boto3>=1.34

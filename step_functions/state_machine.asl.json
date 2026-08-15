@@ -1,0 +1,76 @@
+{
+  "Comment": "Construction Document Intelligence pipeline: Extract -> Classify -> Summarize -> Store",
+  "StartAt": "Extract",
+  "States": {
+    "Extract": {
+      "Type": "Task",
+      "Resource": "${extract_lambda_arn}",
+      "Retry": [
+        {
+          "ErrorEquals": ["States.TaskFailed"],
+          "IntervalSeconds": 3,
+          "MaxAttempts": 2,
+          "BackoffRate": 2.0
+        }
+      ],
+      "Catch": [
+        {
+          "ErrorEquals": ["States.ALL"],
+          "ResultPath": "$.error",
+          "Next": "ExtractionFailed"
+        }
+      ],
+      "Next": "Classify"
+    },
+    "Classify": {
+      "Type": "Task",
+      "Resource": "${classify_lambda_arn}",
+      "Retry": [
+        {
+          "ErrorEquals": ["States.TaskFailed"],
+          "IntervalSeconds": 3,
+          "MaxAttempts": 2,
+          "BackoffRate": 2.0
+        }
+      ],
+      "Catch": [
+        {
+          "ErrorEquals": ["States.ALL"],
+          "ResultPath": "$.error",
+          "Next": "PipelineFailed"
+        }
+      ],
+      "Next": "Summarize"
+    },
+    "Summarize": {
+      "Type": "Task",
+      "Resource": "${summarize_lambda_arn}",
+      "Retry": [
+        {
+          "ErrorEquals": ["States.TaskFailed"],
+          "IntervalSeconds": 3,
+          "MaxAttempts": 2,
+          "BackoffRate": 2.0
+        }
+      ],
+      "Catch": [
+        {
+          "ErrorEquals": ["States.ALL"],
+          "ResultPath": "$.error",
+          "Next": "PipelineFailed"
+        }
+      ],
+      "End": true
+    },
+    "ExtractionFailed": {
+      "Type": "Fail",
+      "Error": "ExtractionFailed",
+      "Cause": "Textract extraction step failed"
+    },
+    "PipelineFailed": {
+      "Type": "Fail",
+      "Error": "PipelineFailed",
+      "Cause": "Document intelligence pipeline failed after extraction"
+    }
+  }
+}

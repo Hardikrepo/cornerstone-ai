@@ -1,0 +1,21 @@
+# Terraform
+terraform/.terraform/
+terraform/.terraform.lock.hcl
+terraform/build/
+terraform/*.tfstate
+terraform/*.tfstate.*
+terraform/*.tfvars
+!terraform/*.tfvars.example
+terraform/crash.log
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# Generated sample docs (regenerate with sample_docs/generate_samples.py)
+sample_docs/*.pdf
+
+# Local secrets
+.env

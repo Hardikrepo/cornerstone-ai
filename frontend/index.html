@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Cornerstone AI</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="page">
+    <header class="site-header">
+      <div class="brand">
+        <span class="brand-mark" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M4 3h11l5 5v13a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
+            <path d="M15 3v5h5" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
+            <path d="M7 12h10M7 15.5h10M7 8.5h4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+          </svg>
+        </span>
+        <div>
+          <h1>Cornerstone AI</h1>
+          <p class="brand-sub">Document intelligence for construction</p>
+        </div>
+      </div>
+      <span class="stack-badge">Textract &middot; Bedrock &middot; Step Functions</span>
+    </header>
+
+    <main>
+      <section id="upload-section" class="panel">
+        <div id="dropzone" class="dropzone" tabindex="0" role="button" aria-label="Upload a document">
+          <input type="file" id="file-input" accept=".pdf,.png,.jpg,.jpeg" hidden />
+          <svg class="dropzone-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <path d="M12 15V4M12 4l-4 4M12 4l4 4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M4 15v4a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-4" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          <p class="dropzone-title">Drop a document here, or click to browse</p>
+          <p class="dropzone-hint">PDF, PNG, or JPG &mdash; invoices, permits, change orders, RFIs, submittals</p>
+        </div>
+
+        <div id="file-chip" class="file-chip hidden">
+          <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <path d="M6 3h8l4 4v13a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
+          </svg>
+          <span id="file-chip-name"></span>
+          <button id="file-chip-clear" class="chip-clear" type="button" aria-label="Remove file">&times;</button>
+        </div>
+
+        <button id="upload-btn" class="btn-primary" disabled>Process Document</button>
+      </section>
+
+      <section id="progress-section" class="panel hidden">
+        <ol id="stepper" class="stepper">
+          <li class="step" data-step="Upload"><span class="step-dot"></span><span class="step-label">Upload</span></li>
+          <li class="step" data-step="Extract"><span class="step-dot"></span><span class="step-label">Extract</span></li>
+          <li class="step" data-step="Classify"><span class="step-dot"></span><span class="step-label">Classify</span></li>
+          <li class="step" data-step="Summarize"><span class="step-dot"></span><span class="step-label">Summarize</span></li>
+        </ol>
+        <p id="status" class="status" role="status" aria-live="polite"></p>
+      </section>
+
+      <section id="result-section" class="panel hidden">
+        <div class="result-head">
+          <div>
+            <span class="label">Document type</span>
+            <div class="type-row">
+              <span id="doc-type" class="chip chip-type"></span>
+              <span id="confidence" class="chip chip-confidence"></span>
+            </div>
+          </div>
+          <button id="reset-btn" class="btn-ghost" type="button">Process another</button>
+        </div>
+
+        <div class="field">
+          <span class="label">Summary</span>
+          <p id="summary-text" class="summary-text"></p>
+        </div>
+
+        <div class="field">
+          <span class="label">Key fields</span>
+          <dl id="key-fields" class="key-fields"></dl>
+        </div>
+
+        <div class="field">
+          <span class="label">Review flags</span>
+          <ul id="flags-list" class="flags-list"></ul>
+        </div>
+
+        <div class="field">
+          <span class="label">Status</span>
+          <span id="review-status" class="chip chip-pending"></span>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script src="config.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
