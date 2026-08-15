@@ -1,0 +1,7 @@
+# Prevent line-ending conversion on binary files — without this, a
+# checkout on a system with autocrlf enabled can silently corrupt them.
+*.pdf binary
+*.png binary
+*.gif binary
+*.jpg binary
+*.jpeg binary
