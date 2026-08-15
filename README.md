@@ -23,6 +23,22 @@ Nothing is auto-approved. Every result is marked "pending human review" — this
 
 Behind the scenes this runs entirely on Amazon Web Services (AWS) — no servers to manage, nothing running when nobody's using it.
 
+## Architecture
+
+**What's actually deployed today** is a simple, fully serverless flow — no VPC, no load balancer, nothing sitting idle:
+
+```
+Browser → API Gateway → Lambda → S3 (upload)
+                              ↓
+        Step Functions: Extract (Textract) → Classify (Bedrock) → Summarize (Bedrock)
+                              ↓
+                        S3 (result JSON)
+```
+
+**Where this could grow** — the diagram below is a target/future-state design for a production-hardened deployment (private subnets, load balancer, NAT/CloudFront, tighter network isolation), not what's running now. It's a useful reference for what "harden this for a real enterprise" looks like, but don't take it as documentation of the current MVP:
+
+![Target-state AWS architecture — production-hardened design, not the current MVP](docs/images/architecture-target-state.png)
+
 ## What does it cost?
 
 This is genuinely cheap — here's the honest breakdown:
@@ -52,6 +68,17 @@ If you wanted a literally $0-cost option, the only way is to run an AI model on 
 ## What it's built with (for the curious)
 
 Amazon Textract (reads the document), Amazon Bedrock (the AI model), AWS Lambda + Step Functions (the behind-the-scenes plumbing), and Amazon S3 (storage) — all "serverless," meaning AWS only spins up compute for the few seconds it's actually needed.
+
+## Interesting engineering challenges (for the technically curious)
+
+This wasn't just designed on paper — it was deployed, broken, and fixed against a real AWS account. A few genuinely interesting bugs turned up along the way that wouldn't show up in a mocked/local test:
+
+- **Text extraction silently failed on real multi-page PDFs.** Amazon Textract's *synchronous* API only supports single-page documents — it worked perfectly on our single-page test samples and then broke the moment a real 2-page document came through. Fixed by switching to Textract's *asynchronous* job API (submit a job, poll until done), which handles documents of any length.
+- **A storage permission gap that hid itself.** When checking "is this document done yet?", a missing permission caused Amazon S3 to return "access denied" instead of the expected "not found yet" — because S3 deliberately won't tell an under-permissioned caller whether something exists or not, as a security measure. That subtlety crashed the status check on every single request until it was traced through the logs and fixed with one added permission.
+- **The cheapest AI model needed a special routing ID.** Amazon Nova Micro (the AI model used here) rejected direct on-demand requests and required an "inference profile" ID instead — and once that was fixed, the permissions had to be granted across *three* AWS regions the profile can route through, not just one.
+- **A classic web security rule (CORS) blocked file uploads** until the storage bucket was explicitly told which websites are allowed to upload to it — a standard, expected step that's easy to miss on a first deploy.
+
+None of these were caught by writing the code carefully — they only surfaced by actually deploying and testing against the real thing, which is the whole reason this got shipped end-to-end instead of stopping at "the Terraform looks right."
 
 ## Current status
 
