@@ -25,16 +25,6 @@ Behind the scenes this runs entirely on Amazon Web Services (AWS) — no servers
 
 ## Architecture
 
-**What's actually deployed today** is a simple, fully serverless flow — no VPC, no load balancer, nothing sitting idle:
-
-```
-Browser → API Gateway → Lambda → S3 (upload)
-                              ↓
-        Step Functions: Extract (Textract) → Classify (Bedrock) → Summarize (Bedrock)
-                              ↓
-                        S3 (result JSON)
-```
-
 **Where this could grow** — the diagram below is a target/future-state design for a production-hardened deployment (private subnets, load balancer, NAT/CloudFront, tighter network isolation), not what's running now. It's a useful reference for what "harden this for a real enterprise" looks like, but don't take it as documentation of the current MVP:
 
 ![Target-state AWS architecture — production-hardened design, not the current MVP](docs/images/architecture-target-state.png)
