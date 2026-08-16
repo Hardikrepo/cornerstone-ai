@@ -81,3 +81,59 @@ None of these were caught by writing the code carefully — they only surfaced b
 ## Current status
 
 This is a working prototype — the code is fully built and tested, but it isn't running live right now (it was intentionally shut down after testing to avoid any ongoing cost). It can be turned back on in a few minutes whenever needed.
+
+## Running this yourself on AWS
+
+Everything here is provisioned by Terraform — there's no manual clicking around the AWS console required. All commands below assume you're in the repo root unless noted.
+
+### 1. Prerequisites
+
+- An AWS account with billing enabled, and credentials configured locally (`aws configure`, or an SSO profile — anything the AWS CLI/Terraform AWS provider can pick up).
+- [Terraform](https://developer.hashicorp.com/terraform/install) >= 1.5.0.
+- The AWS CLI (used below to confirm things after deploy; not strictly required by Terraform itself).
+- Python 3.12, only if you want to run the local tests (Lambda code and packaging don't need it on your machine — Terraform zips the Lambdas itself).
+
+### 2. Enable Bedrock model access (one-time, per AWS account)
+
+AWS keeps foundation models opt-in per account/region. Before deploying, go to the **Bedrock console → Model access** and enable **Amazon Nova Micro** in `us-east-1` (the default region this project deploys to — see `terraform/variables.tf`). This is a one-time toggle and takes effect immediately; skipping it makes the `classify` and `summarize` Lambdas fail with an access-denied error the first time a document is processed.
+
+### 3. Clone and deploy
+
+```bash
+git clone https://github.com/Hardikrepo/cornerstone-ai.git
+cd cornerstone-ai/terraform
+
+terraform init
+terraform plan    # review what will be created
+terraform apply   # type "yes" to confirm
+```
+
+No `.tfvars` file is needed to get a working deployment — every variable in `terraform/variables.tf` (region, project name, Bedrock model ID, Lambda timeouts) has a sensible default. Override any of them with `-var="aws_region=us-west-2"` or a `terraform.tfvars` file if you want a different setup.
+
+A fresh `apply` takes a couple of minutes and creates: two S3 buckets (private `documents` bucket, public `frontend` website bucket), four Lambda functions (`api`, `extract`, `classify`, `summarize`), the Step Functions state machine that chains them, an HTTP API Gateway in front of the `api` Lambda, and the IAM roles/policies tying it together.
+
+### 4. Get the URLs and try it
+
+```bash
+terraform output
+```
+
+This prints `frontend_url` (the web UI) and `api_base_url` (the HTTP API it talks to) — `frontend.tf` bakes `api_base_url` straight into the deployed `config.js`, so the two are already wired together with no manual step. Open `frontend_url` in a browser and drag in one of the sample PDFs from `sample_docs/` (`invoice_sample.pdf`, `permit_sample.pdf`, `change_order_sample.pdf`) to see the pipeline run end to end.
+
+### 5. Test the pipeline logic without touching AWS
+
+```bash
+pip install boto3
+python tests/test_local_pipeline.py
+```
+
+This runs the `classify` and `summarize` Lambda code locally against a mocked Bedrock client — useful for checking the data flow and JSON parsing without any AWS credentials or spend. It doesn't exercise the `extract` (Textract) step, since that needs a real S3 object to read.
+
+### 6. Tear it down
+
+```bash
+cd terraform
+terraform destroy   # type "yes" to confirm
+```
+
+Both S3 buckets are created with `force_destroy = true`, so `destroy` removes everything — including all object versions in the `documents` bucket — in one pass, with nothing left over to bill for. This is exactly what was done after the last round of testing (see "Current status" above).
